@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;tp.product&apos; to &apos;produit&apos;&#x0D;&#x0A;- Original project: &apos;tp&apos;&#x0D;&#x0A;- Original element: &apos;tp.product&apos;&#x0D;&#x0A;- Renamed element: &apos;tp.produit&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;product&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/src&lt;tp{product.java[product" matchStrategy="1" name="produit" qualified="false" references="true" similarDeclarations="false" stamp="1637048625729" textual="false" version="1.0"/>
+</session>

@@ -1,0 +1,100 @@
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class Rencontre {
+	private String commande;
+	private String sport;	
+	private int duree;
+	private Equiperugby[] equipes = new Equiperugby[2];
+	
+	public Rencontre(String commande,String sport, int duree,Equiperugby equipe1, Equiperugby equipe2) {
+		this.commande = commande;
+		x²
+		this.duree = duree;
+		this.equipes[0] = equipe1;
+		this.equipes[1] = equipe2;		
+	}
+
+	public String getCommande() {return commande;}
+	public void setCommande(String commande) {this.commande = commande;}
+	public String getSport() {return sport;}
+	public void setSport(String sport) {this.sport = sport;}
+	public int getDuree() {return duree;}
+	public void setDuree(int duree) {this.duree = duree;}
+	public Equiperugby[] getEquipes() {return equipes;}
+	public void setEquipes(Equiperugby[] equipes) {this.equipes = equipes;}
+	
+	public  void socket(String text){
+		Socket socket;
+		PrintWriter out;
+		BufferedReader in;
+		try{
+			socket = new Socket("127.0.0.1",5002);
+			out = new PrintWriter(socket.getOutputStream());
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			   
+			Thread envoyer = new Thread(new Runnable() {
+	             String msg;
+	              @Override
+	              public void run() {
+	                while(true){
+	                  out.println(text);
+	                  out.flush();
+	                }
+	             }
+	         });
+	         envoyer.start();
+
+	         Thread recevoir = new Thread(new Runnable() {
+	             String msg;
+	             @Override
+	             public void run() {
+	                try {
+	                  msg = in.readLine();
+	                  while(msg!=null){
+	                     System.out.println("Serveur : "+msg);
+	                     msg = in.readLine();
+	                  }
+	                  System.out.println("Serveur déconecté");
+	                  out.close();
+	                  socket.close();
+	                } catch (IOException e) {
+	                    e.printStackTrace();
+	                }
+	             }
+	         });
+	        recevoir.start(); 
+	     }catch (IOException e) {
+	           e.printStackTrace();
+      }
+	}
+	public void savejson(String commande) {
+		this.setCommande(commande);
+		String jsonInString = new String();
+		ObjectMapper mapper = new ObjectMapper();
+	    
+	    try {
+			 mapper.writeValue(new FileWriter("equipe de rugby.json" , false), this);
+			 jsonInString = mapper.writeValueAsString(this);
+			 System.out.println("Ecriture du tableau sur un fichier json\n");
+			 System.out.println(jsonInString);
+			 this.socket(jsonInString);
+			 } catch (JsonGenerationException e) {
+			 e.printStackTrace();
+			 } catch (JsonMappingException e) {
+			 e.printStackTrace();
+			 } catch (IOException e) {
+			 e.printStackTrace();
+			 }
+}
+
+}
+

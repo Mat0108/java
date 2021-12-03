@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="C:/Users/matth/Desktop/Cours/Eclipse-workspace/Library/jackson-annotations-2.13.0-rc1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/matth/Desktop/Cours/Eclipse-workspace/Library/jackson-core-2.13.0-rc1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/matth/Desktop/Cours/Eclipse-workspace/Library/jackson-databind-2.13.0-rc1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/matth/Desktop/Cours/Eclipse-workspace/Library/mysql-connector-java-8.0.23/mysql-connector-java-8.0.23.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

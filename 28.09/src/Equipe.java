@@ -3,9 +3,9 @@ public class Equipe {
 	private String sport;
 	private int score;
 
-	public Equipe(String nomequipe,String sportequipe) {
+	public Equipe(String nomequipe,String sport) {
 		this.nom = nomequipe;
-		this.sport = sportequipe;
+		this.setSport(sport);
 		this.score = 0;
 	}
 	public String getNom() {
@@ -16,20 +16,15 @@ public class Equipe {
 		this.nom = nom;
 	}
 
-
-	public String getSport() {
-		return sport;
-	}
-
-
-	public void setSport(String sport) {
-		this.sport = sport;
-	}
-
 	public int getScore() {
 		return score;
 	}
-
+	public String getSport() {
+		return sport;
+	}
+	public void setSport(String sport) {
+		this.sport = sport;
+	}
 
 	public void setScore(int score) {
 		this.score = score;
@@ -38,5 +33,6 @@ public class Equipe {
 	public void ajouter(int x) {
 		this.score += x;
 	}
+
 
 }

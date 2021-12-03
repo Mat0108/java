@@ -1,5 +1,10 @@
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -10,13 +15,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.swing.JLabel;
-import javax.swing.JRadioButton;
-import javax.swing.ButtonGroup;
-import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.Font;
+import java.awt.Insets;
+
 import  javax.swing.*;
-import  java.awt.*;
 import  java.awt.event.*;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,9 +27,8 @@ import java.util.ArrayList;
 public class Frame extends JFrame {
 
 	private JPanel contentPane;
-	private String[] Equipe = {"Paris","Lyon","Toulouse","Cean","Lille"};
-	private JComboBox SaisirEquipe1 = new JComboBox(Equipe);
-	private JComboBox SaisirEquipe2 = new JComboBox(Equipe);
+	private JComboBox SaisirEquipe1 = new JComboBox();
+	private JComboBox SaisirEquipe2 = new JComboBox();
 	private JButton btnEnvoyer = new JButton("Envoyer"); 
 	
 	private JLabel TextChoix = new JLabel("Quelle equipe a marqu\u00E9 ? ");
@@ -43,10 +45,15 @@ public class Frame extends JFrame {
 	private JButton E2_Drop = new JButton("Drop");
 	private JButton E2_Trans = new JButton("Transformation");
 	
-	private Equiperugby Equipe1 = new Equiperugby("","Rugby");
-	private Equiperugby Equipe2 = new Equiperugby("","Rugby");
-
+	private Equiperugby Equipe1 = new Equiperugby("","rugby");
+	private Equiperugby Equipe2 = new Equiperugby("","rugby");
+	private Rencontre rencontre = new Rencontre("d","rugby",80,Equipe1,Equipe2);
 	
+	private JButton btnStart = new JButton("Lancer la partie");
+	private JButton btnEnd = new JButton("Fin de partie");
+	
+	private JButton btnPause = new JButton("P : 0");
+	private JButton btnReprendre = new JButton("P : 1");
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -59,58 +66,153 @@ public class Frame extends JFrame {
 			}
 		});
 	}
-	public static void savejson(Equiperugby equipe1,Equiperugby equipe2) {
-		String jsontext;
-		ObjectMapper mapper = new ObjectMapper();
-	    jsontext = "{'commande':'d' ,'sport' : 'Rugby' ,'duree' : 80 , 'equipes' : [{'nom':'"+equipe1.getNom()
-	    		+"' , 'score' : "+String.valueOf(equipe1.getScore())+" },"
-	    		+ "{'nom':'"+equipe2.getNom()+"' , 'score' : "+String.valueOf(equipe2.getScore())+" }]}";	    
-
-	    try {
-			 mapper.writeValue(new FileWriter("./Match de rugby.json" , false), jsontext);
-			 } catch (JsonGenerationException e) {
-			 e.printStackTrace();
-			 } catch (JsonMappingException e) {
-			 e.printStackTrace();
-			 } catch (IOException e) {
-			 e.printStackTrace();
-			 }
+	
+	public static ArrayList<String> sql() {
+		String url = "jdbc:mysql://localhost:3306/java";
+		String login = "root";
+		String passwd = "";
+		Connection cn = null;
+		Statement st = null;
+		ResultSet rs = null;
+		ArrayList<String> tab = new ArrayList<String>();
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			cn = DriverManager.getConnection(url,login,passwd);
+			st = cn.createStatement();
+			String sql = "SELECT * FROM `equipe` WHERE 1";
+			rs = st.executeQuery(sql);
+			while(rs.next()) {
+				tab.add(rs.getString("nom"));
+			}
+			}catch(SQLException e) {e.printStackTrace();
+			}catch(ClassNotFoundException e) {e.printStackTrace();
+			}
+		return tab;
+	
 	}
+	public static void sql2(Equiperugby equipe1, Equiperugby equipe2) {
+		String sqlequipe1 = "SELECT `victoire`, `PP`, `PC`, `pts` FROM `equipe` WHERE `nom` LIKE '"+equipe1.getNom()+"'";
+		String sqlequipe2 = "SELECT `victoire`, `PP`, `PC`, `pts` FROM `equipe` WHERE `nom` LIKE '"+equipe2.getNom()+"'";
+		int [] victoire = new int[2];
+		int [] PP = new int[2];
+		int [] PC = new int[2];
+		int [] pts = new int[2];
+		
 
+		String url = "jdbc:mysql://localhost:3306/java";
+		String login = "root";
+		String passwd = "";
+		Connection cn = null;
+		Statement st = null;
+		ResultSet rs = null;
+		//recuperation des données de l'equipe 1
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			cn = DriverManager.getConnection(url,login,passwd);
+			st = cn.createStatement();
+			rs = st.executeQuery(sqlequipe1);
+			while(rs.next()) {
+				victoire[0] = rs.getInt("victoire");
+				PP[0] = rs.getInt("PP");
+				PC[0] = rs.getInt("PC");
+				pts[0] = rs.getInt("pts");
+			}
+			}catch(SQLException e) {e.printStackTrace();
+			}catch(ClassNotFoundException e) {e.printStackTrace();
+		};
+
+		//recuperation des données de l'equipe 2
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			cn = DriverManager.getConnection(url,login,passwd);
+			st = cn.createStatement();
+			rs = st.executeQuery(sqlequipe2);
+			while(rs.next()) {
+				victoire[1] = rs.getInt("victoire");
+				PP[1] = rs.getInt("PP");
+				PC[1] = rs.getInt("PC");
+				pts[1] = rs.getInt("pts");
+			}
+			}catch(SQLException e) {e.printStackTrace();
+			}catch(ClassNotFoundException e) {e.printStackTrace();
+		};
+		//gestion du score
+		if (equipe1.getScore() > equipe2.getScore()) {
+			victoire[0]++;
+			pts[0] = pts[0]+3;
+		}
+		if (equipe1.getScore() < equipe2.getScore()) {
+			victoire[1]++;
+			pts[1] = pts[1]+3;
+		}
+		if (equipe1.getScore() == equipe2.getScore()) {
+			pts[0] = pts[0]+1;		
+			pts[1] = pts[1]+1;
+		}
+		
+		sqlequipe1 = "UPDATE `equipe` SET `victoire`="+String.valueOf(victoire[0])+",`PP`="+String.valueOf(PP[0]+equipe1.getScore())+",`PC`="+String.valueOf(PC[0]+equipe2.getScore())+
+				",`pts`="+String.valueOf(pts[0])+" WHERE `nom` LIKE '"+equipe1.getNom()+"'";
+		sqlequipe2 = "UPDATE `equipe` SET `victoire`="+String.valueOf(victoire[1])+",`PP`="+String.valueOf(PP[1]+equipe2.getScore())+",`PC`="+String.valueOf(PC[1]+equipe1.getScore())+
+				",`pts`="+String.valueOf(pts[1])+" WHERE `nom` LIKE '"+equipe2.getNom()+"'";
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			cn = DriverManager.getConnection(url,login,passwd);
+			st = cn.createStatement();
+			st.executeUpdate(sqlequipe1);
+
+			}catch(SQLException e) {e.printStackTrace();
+			}catch(ClassNotFoundException e) {e.printStackTrace();
+		};
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			cn = DriverManager.getConnection(url,login,passwd);
+			st = cn.createStatement();
+			st.executeUpdate(sqlequipe2);
+			}catch(SQLException e) {e.printStackTrace();
+			}catch(ClassNotFoundException e) {e.printStackTrace();
+		};
+	}
 	public Frame() {
+		ArrayList<String> liste = sql();
+		for (String element : liste) {
+			SaisirEquipe1.addItem(element);
+			SaisirEquipe2.addItem(element);
+			
+		}
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 329, 207);
+		setBounds(100, 100, 387, 216);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
 		//Saisie des noms des equipes
-		SaisirEquipe1.setBounds(20, 13, 86, 20);
+		SaisirEquipe1.setBounds(5, 13, 120, 20);
 		contentPane.add(SaisirEquipe1);
 		
-		SaisirEquipe2.setBounds(217, 13, 86, 20);
+		SaisirEquipe2.setBounds(231, 13, 120, 20);
 		contentPane.add(SaisirEquipe2);
 		
 		btnEnvoyer.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		
-		btnEnvoyer.setBounds(116, 12, 86, 23);
+		btnEnvoyer.setBounds(135, 12, 86, 23);
 		contentPane.add(btnEnvoyer);
 		TextChoix.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		
 		//choix de quel equipe à marquer
-		TextChoix.setBounds(77, 11, 178, 24);
+		TextChoix.setBounds(89, 25, 178, 24);
 		contentPane.add(TextChoix);
 		TextChoix.setVisible(false);
 		TextEquipe1.setHorizontalAlignment(SwingConstants.CENTER);
 		
-		TextEquipe1.setBounds(20, 42, 105, 23);
+		TextEquipe1.setBounds(10, 44, 105, 23);
 		contentPane.add(TextEquipe1);
 		TextEquipe1.setVisible(false);
 		TextEquipe2.setHorizontalAlignment(SwingConstants.CENTER);
 		
-		TextEquipe2.setBounds(194, 44, 109, 23);
+		TextEquipe2.setBounds(242, 44, 109, 23);
 		contentPane.add(TextEquipe2);
 		TextEquipe2.setVisible(false);
 		
@@ -118,53 +220,81 @@ public class Frame extends JFrame {
 		
 		//Gestion score
 		Score.setHorizontalAlignment(SwingConstants.CENTER);
-		Score.setBounds(126, 46, 67, 14);
+		Score.setBounds(145, 48, 67, 14);
 		contentPane.add(Score);
 		Score.setVisible(false);
 		
 		
 		E1_Essai.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		E1_Essai.setBounds(20, 72, 109, 23);
+		E1_Essai.setBounds(10, 74, 109, 23);
 		contentPane.add(E1_Essai);
 		
+		
 		E1_Drop.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		E1_Drop.setBounds(20, 106, 109, 23);
+		E1_Drop.setBounds(10, 108, 109, 23);
 		contentPane.add(E1_Drop);
 		
 		E1_Trans.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		E1_Trans.setBounds(20, 140, 109, 23);
+		E1_Trans.setBounds(10, 142, 109, 23);
 		contentPane.add(E1_Trans);
 		
 		E1_Essai.setVisible(false);
 		E1_Drop.setVisible(false);
 		E1_Trans.setVisible(false);
+		E1_Drop.setEnabled(false);
+		E1_Essai.setEnabled(false);
+		E1_Trans.setEnabled(false);
 		
 		E2_Essai.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		E2_Essai.setBounds(194, 72, 109, 23);
+		E2_Essai.setBounds(242, 72, 109, 23);
 		contentPane.add(E2_Essai);
-		E2_Essai.setVisible(false);
 		
 		E2_Drop.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		E2_Drop.setBounds(194, 106, 109, 23);
+		E2_Drop.setBounds(242, 106, 109, 23);
 		contentPane.add(E2_Drop);
-		E2_Drop.setVisible(false);
 		
 		E2_Trans.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		E2_Trans.setBounds(194, 140, 109, 23);
+		E2_Trans.setBounds(242, 140, 109, 23);
 		contentPane.add(E2_Trans);
+
+
+		E2_Drop.setVisible(false);
+		E2_Essai.setVisible(false);
 		E2_Trans.setVisible(false);
 		
+		E2_Drop.setEnabled(false);
+		E2_Essai.setEnabled(false);
+		E2_Trans.setEnabled(false);
+		
+		btnStart.setBounds(110, 0, 136, 23);
+		contentPane.add(btnStart);
+		btnStart.setVisible(false);
+		
+		btnEnd.setBounds(110, 0, 136, 23);
+		contentPane.add(btnEnd);
+		
+
+		btnPause.setBounds(328, 0, 35, 23);
+		contentPane.add(btnPause);
+		btnPause.setMargin(new Insets(0,0,0,0));
+		btnPause.setVisible(false);
+		
+		btnReprendre.setBounds(328, 0, 35, 23);
+		contentPane.add(btnReprendre);
+		btnReprendre.setMargin(new Insets(0,0,0,0));
+		btnReprendre.setVisible(false);
+		btnEnd.setVisible(false);
 		ActionListener Action = new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (e.getSource() == btnEnvoyer) {
-					
+					System.out.println();
 					btnEnvoyer.setVisible(false);
 					SaisirEquipe1.setVisible(false);
 					SaisirEquipe2.setVisible(false);
-					Equipe1.setNom(Equipe[SaisirEquipe1.getSelectedIndex()]);
-					Equipe2.setNom(Equipe[SaisirEquipe2.getSelectedIndex()]);
-					TextEquipe1.setText(Equipe1.getNom());
-					TextEquipe2.setText(Equipe2.getNom());
+					rencontre.getEquipes()[0].setNom(liste.get(SaisirEquipe1.getSelectedIndex()));
+					rencontre.getEquipes()[1].setNom(liste.get(SaisirEquipe2.getSelectedIndex()));
+					TextEquipe1.setText(rencontre.getEquipes()[0].getNom());
+					TextEquipe2.setText(rencontre.getEquipes()[1].getNom());
 					TextEquipe1.setVisible(true);
 					TextEquipe2.setVisible(true);
 					TextChoix.setVisible(true);
@@ -175,16 +305,63 @@ public class Frame extends JFrame {
 					E2_Essai.setVisible(true);
 					E2_Drop.setVisible(true);
 					E2_Trans.setVisible(true);
+					btnStart.setVisible(true);
+					rencontre.savejson("d");
+					rencontre.savejson("s");
+					
 				}
-				
+
 				if (e.getSource() == E1_Essai) {Equipe1.unEssai();}
 				if (e.getSource() == E1_Drop) {Equipe1.unDrop();}
 				if (e.getSource() == E1_Trans) {Equipe1.uneTransformation();}
 				if (e.getSource() == E2_Essai) {Equipe2.unEssai();}
 				if (e.getSource() == E2_Drop) {Equipe2.unDrop();}
 				if (e.getSource() == E2_Trans) {Equipe2.uneTransformation();}
-				Score.setText(String.valueOf(Equipe1.getScore())+" - "+String.valueOf(Equipe2.getScore()));	
-				savejson(Equipe1, Equipe2);
+				
+				if (e.getSource() == btnStart) {
+					rencontre.savejson("r");
+					btnStart.setVisible(false);
+					btnEnd.setVisible(true);
+					E1_Drop.setEnabled(true);
+					E1_Essai.setEnabled(true);
+					E1_Trans.setEnabled(true);
+					E2_Drop.setEnabled(true);
+					E2_Essai.setEnabled(true);
+					E2_Trans.setEnabled(true);
+					btnPause.setVisible(true);
+				}
+				if (e.getSource() == btnPause) {
+					rencontre.savejson("s");
+					E1_Drop.setEnabled(false);
+					E1_Essai.setEnabled(false);
+					E1_Trans.setEnabled(false);
+					E2_Drop.setEnabled(false);
+					E2_Essai.setEnabled(false);
+					E2_Trans.setEnabled(false);
+					btnPause.setVisible(false);
+					btnReprendre.setVisible(true);
+				}
+				if (e.getSource() == btnReprendre) {
+					rencontre.savejson("r");
+					E1_Drop.setEnabled(true);
+					E1_Essai.setEnabled(true);
+					E1_Trans.setEnabled(true);
+					E2_Drop.setEnabled(true);
+					E2_Essai.setEnabled(true);
+					E2_Trans.setEnabled(true);
+					btnPause.setVisible(true);
+					btnReprendre.setVisible(false);
+				}
+				if (e.getSource() == btnEnd) {
+					rencontre.savejson("f");
+					sql2(Equipe1,Equipe2);
+				}
+				else {
+					Score.setText(String.valueOf(rencontre.getEquipes()[0].getScore())+" - "+String.valueOf(rencontre.getEquipes()[1].getScore()));	
+					
+					rencontre.savejson("c");
+				}
+
 			}
 		};
 		btnEnvoyer.addActionListener(Action);
@@ -194,7 +371,10 @@ public class Frame extends JFrame {
 		E2_Essai.addActionListener(Action);
 		E2_Drop.addActionListener(Action);
 		E2_Trans.addActionListener(Action);
-	
+		
+		btnStart.addActionListener(Action);
+		btnPause.addActionListener(Action);
+		btnReprendre.addActionListener(Action);
+		btnEnd.addActionListener(Action);
 	}
-	
 }

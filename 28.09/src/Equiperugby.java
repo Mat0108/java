@@ -1,12 +1,8 @@
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Scanner;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.*;
 
 public class Equiperugby extends Equipe {
-	public Equiperugby(String nomequipe, String sportequipe) {
-		super(nomequipe, sportequipe);
+	
+	public Equiperugby(String nomequipe,String sport) {
+		super(nomequipe,sport);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -31,36 +27,14 @@ public class Equiperugby extends Equipe {
 			uneTransformation();
 		}
 	}
-	public static void savejson(Equiperugby equipe1,Equiperugby equipe2) {
-		String jsontext;
-		ObjectMapper mapper = new ObjectMapper();
-	    jsontext = "{‘commande’:’d’ ,’sport’ : ‘Rugby’ ,’duree’ : 80 , ‘equipes’ : [{‘nom’:’"+equipe1.getNom()
-	    		+"’ , ‘score’ : "+String.valueOf(equipe1.getScore())+" } ,"
-	    		+ "{‘nom’:’"+equipe2.getNom()+"’ , ‘score’ : "+String.valueOf(equipe2.getScore())+" }]}";
+	
 
-	    try {
-			//enregistrement de e1 dans le fichier eleve.json
-			 mapper.writeValue(new FileWriter("./navigateur.json" , false), jsontext);
-			 //fabrication d'un String = e1 au format JSON
-			 String jsonInString = mapper.writeValueAsString(jsontext);
-			 //affichage du String
-			 System.out.println("Ecriture du tableau sur un fichier json\n");
-			 System.out.println(jsonInString);
-			 } catch (JsonGenerationException e) {
-			 e.printStackTrace();
-			 } catch (JsonMappingException e) {
-			 e.printStackTrace();
-			 } catch (IOException e) {
-			 e.printStackTrace();
-			 }
-	}
-	public static void main(String[] args) {
+	/*	public static void main(String[] args) {
 	    Scanner myObj = new Scanner(System.in);
 		int indice;
-		int typedebut;
 		String textscore;
-		Equiperugby equipe1 = new Equiperugby("Paris","Rugby");
-		Equiperugby equipe2 = new Equiperugby("Lyon","Rugby");
+		Equiperugby equipe1 = new Equiperugby("Paris");
+		Equiperugby equipe2 = new Equiperugby("Lyon");
 		do{
 			System.out.println("Quel equipe a marquer ? (1 ou 2) (-1 to quit) ");
 		    indice = myObj.nextInt(); 
@@ -80,5 +54,5 @@ public class Equiperugby extends Equipe {
     System.out.println(textscore);
     savejson(equipe1, equipe2);
     myObj.close();
-}
+}*/
 }
